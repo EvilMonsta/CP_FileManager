@@ -5,16 +5,16 @@
 #define NAME_LEN 256
 
 typedef struct {
-    char name[NAME_LEN];          // ≈ 2048 бит
-    int is_dir;                   // 32 бита
+    char name[NAME_LEN];         
+    int is_dir;                 
 } FileEntry;
 
 typedef struct {
-    char path[PATH_MAX];       // Текущий путь
-    FileEntry files[MAX_FILES]; // Список файлов и папок
-    int file_count;            // Количество элементов
-    int selected;              // Индекс выбранного элемента
-    int offset;                // Смещение для прокрутки
+    char path[PATH_MAX];       
+    FileEntry files[MAX_FILES]; 
+    int file_count;            
+    int selected;            
+    int offset;             
 } Panel;
 
 void load_directory(Panel* panel);

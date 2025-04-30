@@ -4,14 +4,14 @@
 #define MAX_TABS 10
 
 typedef struct {
-    Panel left;   // панель слева
-    Panel right;  // панель справа
+    Panel left;  
+    Panel right;  
 } Tab;
 
 typedef struct {
-    Tab tabs[MAX_TABS];   // список вкладок
-    int tab_count;        // 32 бита
-    int current_tab;      // 32 бита
+    Tab tabs[MAX_TABS];   
+    int tab_count;       
+    int current_tab;    
 } TabManager;
 
 void init_tabs(TabManager* manager, const char* start_path);
