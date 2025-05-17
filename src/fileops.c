@@ -41,6 +41,17 @@ void load_directory(Panel* panel) {
         if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0)
             continue;
     
+        if(strcmp(panel->path, "/") == 0 &&
+            (!strcmp(entry->d_name, "root") ||
+             !strcmp(entry->d_name, "proc") ||
+             !strcmp(entry->d_name, "sys") ||
+             !strcmp(entry->d_name, "run") ||
+             !strcmp(entry->d_name, "sbin") ||
+             !strcmp(entry->d_name, "bin") ||
+             !strcmp(entry->d_name, "dev"))) {
+            continue;
+        }
+
         if (panel->file_count >= MAX_FILES)
             break;        
         FileEntry* fe = &panel->files[panel->file_count];
