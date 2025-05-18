@@ -28,9 +28,9 @@ void close_ui() {
 void draw_tabs(TabManager* manager) {
     int x = 0;
     for (int i = 0; i < manager->tab_count; i++) {
-        if (i == manager->current_tab) attron(A_REVERSE);
+        if (i == manager->current_tab) attron(A_REVERSE | COLOR_PAIR(COLOR_PANEL_BOX));
         mvprintw(0, x, "[ Tab %d ]", i + 1);
-        if (i == manager->current_tab) attroff(A_REVERSE);
+        if (i == manager->current_tab) attroff(A_REVERSE | COLOR_PAIR(COLOR_PANEL_BOX));
         x += 10;
     }
     mvhline(1, 0, ACS_HLINE, COLS);

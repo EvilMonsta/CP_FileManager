@@ -113,6 +113,9 @@ int main() {
             }
             else if (ch == KEY_F(3)) {
                 close_tab(&manager, manager.current_tab);
+                clear();
+                refresh();
+                render(&manager, &search_result, focused);
             }
             else if (ch == KEY_F(4)) {
                 switch_tab(&manager, 1);
