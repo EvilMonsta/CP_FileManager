@@ -19,5 +19,6 @@ bool prompt_rename_file(const char* old_name, char* new_name, size_t max_len);
 bool confirm_deletion(const char* name);
 bool confirm_rename(const char* old_name, const char* new_name);
 bool confirm_copy(const char* src, const char* dest);
+bool confirm_overwrite(const char* dest_name);
 
 #endif

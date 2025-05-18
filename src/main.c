@@ -53,11 +53,16 @@ int main() {
                     else if (mx >= 12 && mx < 21) ch = KEY_F(2);     // F2:NewTab
                     else if (mx >= 23 && mx < 34) ch = KEY_F(3);     // F3:CloseTab
                     else if (mx >= 36 && mx < 46) ch = KEY_F(4);      // F4:NextTab
-                    else if (mx >= 48  && mx < 57) ch = KEY_F(5);      // F5:Rename  
-                    else if (mx >= 59 && mx < 68) ch = KEY_F(7);     // F7:Search
-                    else if (mx >= 70 && mx < 79) ch = KEY_F(8);     // F8:Delete
-                    else if (mx >= 81 && mx < 96) ch = '	';         // TAB:SwitchPanel
-                    else if (mx >= 98 && mx < 104) ch = 'q';         // q:Quit
+                    else if (mx >= 48  && mx < 57) ch = KEY_F(5);      // F5:Rename 
+                    else if (mx >= 59  && mx < 66) ch = KEY_F(6);      // F6:Copy   
+                    else if (mx >= 68 && mx < 77) ch = KEY_F(7);     // F7:Search
+                    else if (mx >= 79 && mx < 88) ch = KEY_F(8);     // F8:Delete
+                    else if (mx >= 90 && mx < 97) ch = KEY_F(9);     // F9:Move
+                    else if (mx >= 99 && mx < 114) ch = '	';         // TAB:SwitchPanel
+                    else if (mx >= 116 && mx < 122) {// q:Quit
+                        close_ui();
+                        return 0;
+                    };         
                 }
             }
         }
@@ -229,6 +234,44 @@ int main() {
                     delete_entry(panel);
                 }
             }
+            else if (ch == KEY_F(9)) {
+                Panel* src_panel = (focused == 0) ? &tab->left : &tab->right;
+                Panel* dst_panel = (focused == 0) ? &tab->right : &tab->left;
+                if (src_panel->file_count == 0) continue;
+            
+                FileEntry* entry = &src_panel->files[src_panel->selected];
+                if (!strcmp(entry->name, ".") || !strcmp(entry->name, "..")) continue;
+            
+                char src_path[PATH_MAX], dest_path[PATH_MAX];
+            
+                strncpy(src_path, src_panel->path, sizeof(src_path) - 1);
+                src_path[sizeof(src_path) - 1] = '\0';
+                if (src_path[strlen(src_path) - 1] != '/')
+                    strncat(src_path, "/", sizeof(src_path) - strlen(src_path) - 1);
+                strncat(src_path, entry->name, sizeof(src_path) - strlen(src_path) - 1);
+            
+                strncpy(dest_path, dst_panel->path, sizeof(dest_path) - 1);
+                dest_path[sizeof(dest_path) - 1] = '\0';
+                if (dest_path[strlen(dest_path) - 1] != '/')
+                    strncat(dest_path, "/", sizeof(dest_path) - strlen(dest_path) - 1);
+                strncat(dest_path, entry->name, sizeof(dest_path) - strlen(dest_path) - 1);
+            
+                if (access(dest_path, F_OK) == 0) {
+                    if (!confirm_overwrite(entry->name)) {
+                        render(&manager, &search_result, focused);
+                        continue;
+                    }
+                }
+            
+                if (rename(src_path, dest_path) != 0) {
+                    mvprintw(3, 2, "Move failed.");
+                    getch();
+                } else {
+                    load_directory(src_panel);
+                    load_directory(dst_panel);
+                }
+            }
+            
             else if (focused == 0) {
                 handle_input(ch, &tab->left);
             }

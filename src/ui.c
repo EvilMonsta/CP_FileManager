@@ -166,7 +166,7 @@ void handle_input(int ch, Panel* panel) {
 
 void draw_footer() {
     mvhline(LINES - 2, 0, ACS_HLINE, COLS);
-    mvprintw(LINES - 1, 0, "F1:PrevTab  F2:NewTab  F3:CloseTab  F4:NextTab  F5:Rename  F7:Search  F8:Delete  TAB:SwitchPanel  q:Quit");
+    mvprintw(LINES - 1, 0, "F1:PrevTab  F2:NewTab  F3:CloseTab  F4:NextTab  F5:Rename  F6:Copy  F7:Search  F8:Delete  F9:Move  TAB:SwitchPanel  q:Quit");
 }
 
 bool confirm_deletion(const char* name) {
@@ -429,6 +429,64 @@ bool confirm_copy(const char* src, const char* dest) {
     int yes_x = 6;
     int no_x = 24;
     int button_y = 6;
+
+    wattron(win, COLOR_PAIR(COLOR_YES));
+    mvwprintw(win, button_y, yes_x, "[Y] Yes");
+    wattroff(win, COLOR_PAIR(COLOR_YES));
+
+    wattron(win, COLOR_PAIR(COLOR_NO));
+    mvwprintw(win, button_y, no_x, "[N] No");
+    wattroff(win, COLOR_PAIR(COLOR_NO));
+
+    wrefresh(win);
+
+    int ch;
+    bool result = false;
+    MEVENT event;
+
+    while (1) {
+        ch = wgetch(win);
+        if (ch == 'y' || ch == 'Y') { result = true; break; }
+        else if (ch == 'n' || ch == 'N' || ch == 27) { result = false; break; }
+        else if (ch == KEY_MOUSE) {
+            if (getmouse(&event) == OK) {
+                int mx = event.x;
+                int my = event.y;
+                if (my == starty + button_y) {
+                    if (mx >= startx + yes_x && mx <= startx + yes_x + 7) {
+                        result = true;
+                        break;
+                    }
+                    if (mx >= startx + no_x && mx <= startx + no_x + 6) {
+                        result = false;
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    werase(win); wrefresh(win); delwin(win);
+    touchwin(stdscr); refresh();
+    return result;
+}
+
+bool confirm_overwrite(const char* dest_name) {
+    int win_width = 50;
+    int win_height = 7;
+    int startx = (COLS - win_width) / 2;
+    int starty = (LINES - win_height) / 2;
+
+    WINDOW* win = newwin(win_height, win_width, starty, startx);
+    box(win, 0, 0);
+    keypad(win, TRUE);
+
+    mvwprintw(win, 1, 2, "File \"%.*s\" already exists.", win_width - 10, dest_name);
+    mvwprintw(win, 3, 2, "Overwrite it?");
+
+    int yes_x = 6;
+    int no_x = 24;
+    int button_y = 5;
 
     wattron(win, COLOR_PAIR(COLOR_YES));
     mvwprintw(win, button_y, yes_x, "[Y] Yes");
