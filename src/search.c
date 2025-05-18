@@ -22,6 +22,15 @@ static int is_system_dir(const char* path) {
 
 
 
+static int str_icontains(const char* haystack, const char* needle) {
+    size_t nlen = strlen(needle);
+    for (; *haystack; haystack++) {
+        if (strncasecmp(haystack, needle, nlen) == 0)
+            return 1;
+    }
+    return 0;
+}
+
 static void search_recursive(const char* path, const char* query, SearchResult* result, int depth, int* dirs_scanned) {
     if (!path || !query || !result) return;
     if (result->count >= MAX_RESULTS || depth > MAX_DEPTH || *dirs_scanned >= MAX_DIRS_SCANNED) return;
@@ -29,7 +38,6 @@ static void search_recursive(const char* path, const char* query, SearchResult* 
 
     DIR* dir = opendir(path);
     if (!dir) return;
-
     (*dirs_scanned)++;
 
     struct dirent* entry;
@@ -43,10 +51,9 @@ static void search_recursive(const char* path, const char* query, SearchResult* 
 
         struct stat st;
         if (lstat(full_path, &st) != 0) continue;
+        if (S_ISLNK(st.st_mode)) continue;
 
-        if (S_ISLNK(st.st_mode)) continue; 
-
-        if (result->count < MAX_RESULTS && strstr(entry->d_name, query)) {
+        if (result->count < MAX_RESULTS && str_icontains(entry->d_name, query)) {
             strncpy(result->results[result->count], full_path, PATH_MAX - 1);
             result->results[result->count][PATH_MAX - 1] = '\0';
             result->count++;
@@ -61,7 +68,6 @@ static void search_recursive(const char* path, const char* query, SearchResult* 
 
     closedir(dir);
 }
-
 
 void search_files(const char* base_path, const char* query, SearchResult* result) {
     if (!base_path || !query || !result) return;

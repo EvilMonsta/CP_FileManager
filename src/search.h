@@ -3,7 +3,7 @@
 #define MAX_RESULTS 512
 #include "limits.h"
 #define MAX_DEPTH 10 
-#define MAX_DIRS_SCANNED 3000
+#define MAX_DIRS_SCANNED 50000
 typedef struct {
     char results[MAX_RESULTS][PATH_MAX];  
     int count;                          

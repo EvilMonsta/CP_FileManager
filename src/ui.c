@@ -5,6 +5,9 @@
 #include <wchar.h>
 #include <locale.h>
 #include <stdlib.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 
 #define PANEL_HEIGHT (LINES - 5)
 #define COLOR_YES 1
@@ -120,12 +123,28 @@ void draw_search_results(SearchResult* result) {
         wattroff(win, A_BOLD);
     }    
 
-    for (int i = 0; i < max_visible; i++) {
+ for (int i = 0; i < max_visible; i++) {
         int idx = offset + i;
         if (idx >= result->count) break;
 
+        wchar_t wline[PATH_MAX];
+        mbstowcs(wline, result->results[idx], PATH_MAX);
+
+        int printed_width = 0;
+        int j = 0;
+        wchar_t final[PATH_MAX];
+
+        int max_line_width = width - 4;
+
+        while (wline[j] != L'\0' && printed_width + wcwidth(wline[j]) <= max_line_width - 1) {
+            final[j] = wline[j];
+            printed_width += wcwidth(wline[j]);
+            j++;
+        }
+        final[j] = L'\0';
+
         if (idx == result->selected) wattron(win, A_REVERSE);
-        mvwprintw(win, i + 1, 2, "%s", result->results[idx]);
+        mvwaddwstr(win, i + 1, 2, final);
         if (idx == result->selected) wattroff(win, A_REVERSE);
     }
 
@@ -160,8 +179,28 @@ void handle_input(int ch, Panel* panel) {
             }
             panel->selected = 0;
             panel->offset = 0;
+        } else {
+            
+            char full_path[PATH_MAX];
+
+            strncpy(full_path, panel->path, sizeof(full_path) - 1);
+            full_path[sizeof(full_path) - 1] = '\0';
+
+            if (full_path[strlen(full_path) - 1] != '/')
+                strncat(full_path, "/", sizeof(full_path) - strlen(full_path) - 1);
+
+            strncat(full_path, entry->name, sizeof(full_path) - strlen(full_path) - 1);
+
+            pid_t pid = fork();
+            if (pid == 0) {
+                execlp("code-oss", "code-oss", "--new-window", full_path, (char*)NULL);  
+            } else if (pid > 0) {
+            } else {
+                mvprintw(3, 2, "Failed to fork.");
+                getch();
+            }
         }
-    }
+    } 
 }
 
 void draw_footer() {
